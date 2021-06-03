@@ -32,7 +32,7 @@ RUN git clone --recursive https://github.com/minetest/minetest.git \
 	&& cp -a misc /usr/src/minetest/misc \
 	&& cp -a po /usr/src/minetest/po \
 	&& cp -a src /usr/src/minetest/src \
-    && textures /usr/src/minetest/textures \
+    && cp -a textures /usr/src/minetest/textures \
 	&& cd .. && rm -rf /tmp/minetest
 
 
