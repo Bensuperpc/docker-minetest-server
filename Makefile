@@ -8,11 +8,11 @@
 #//////////////////////////////////////////////////////////////
 #//                                                          //
 #//  Script, 2021                                            //
-#//  Created: 02, June, 2021                                 //
+#//  Created: 03, June, 2021                                 //
 #//  Modified: 03, June, 2021                                //
 #//  file: -                                                 //
 #//  -                                                       //
-#//  Source: https://github.com/windelbouwman/ppci                                               //
+#//  Source: https://github.com/minetest/minetest.git                                               //
 #//          https://www.docker.com/blog/getting-started-with-docker-for-arm-on-linux/
 #//          https://schinckel.net/2021/02/12/docker-%2B-makefile/
 #//          https://www.padok.fr/en/blog/multi-architectures-docker-iot
