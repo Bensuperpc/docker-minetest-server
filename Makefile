@@ -8,11 +8,11 @@
 #//////////////////////////////////////////////////////////////
 #//                                                          //
 #//  Script, 2021                                            //
-#//  Created: 03, June, 2021                                 //
-#//  Modified: 03, June, 2021                                //
+#//  Created: 17, June, 2021                                 //
+#//  Modified: 17, June, 2021                                //
 #//  file: -                                                 //
 #//  -                                                       //
-#//  Source: https://github.com/minetest/minetest.git                                               //
+#//  Source: https://github.com/minetest/minetest                                                //
 #//          https://www.docker.com/blog/getting-started-with-docker-for-arm-on-linux/
 #//          https://schinckel.net/2021/02/12/docker-%2B-makefile/
 #//          https://www.padok.fr/en/blog/multi-architectures-docker-iot
@@ -20,40 +20,41 @@
 #//  CPU: ALL                                                //
 #//                                                          //
 #//////////////////////////////////////////////////////////////
-BASE_IMAGE := alpine:latest
+BASE_IMAGE := alpine:3.13
+IMAGE_SUBTAG := alpine
 IMAGE_NAME := bensuperpc/minetest-server
 DOCKERFILE := Dockerfile
 
 DOCKER := docker
 
 TAG := $(shell date '+%Y%m%d')-$(shell git rev-parse --short HEAD)
-DATE_FULL := $(shell date -u +%Y-%m-%dT%H:%M:%SZ)
+DATE_FULL := $(shell date -u "+%Y-%m-%dT%H:%M:%SZ")
 UUID := $(shell cat /proc/sys/kernel/random/uuid)
 VERSION := 1.0.0
-#linux/arm/v6 linux/s390x linux/ppc64le
-ARCH_LIST := linux/amd64 linux/arm64 linux/386 linux/arm/v7
 
+# linux/386 linux/arm64 linux/ppc64le linux/s390x linux/arm/v7 linux/arm/v6
+ARCH_LIST := linux/amd64
 comma:= ,
 COM_ARCH_LIST:= $(subst $() $(),$(comma),$(ARCH_LIST))
 
 $(ARCH_LIST): $(DOCKERFILE)
-	$(DOCKER) buildx build . -f $(DOCKERFILE) -t $(IMAGE_NAME):$(TAG) -t $(IMAGE_NAME):latest \
-	--build-arg BUILD_DATE=$(DATE_FULL) --build-arg DOCKER_IMAGE=$(BASE_IMAGE) --platform $@ \
-	--build-arg VERSION=$(VERSION) --load
+	$(DOCKER) buildx build . -f $(DOCKERFILE) -t $(IMAGE_NAME):$(IMAGE_SUBTAG)-$(TAG) \
+	-t $(IMAGE_NAME):$(IMAGE_SUBTAG) --build-arg BUILD_DATE=$(DATE_FULL) -t $(IMAGE_NAME):$(IMAGE_SUBTAG)-latest \
+	-t $(IMAGE_NAME):latest --build-arg DOCKER_IMAGE=$(BASE_IMAGE) --platform $@ --build-arg VERSION=$(VERSION) --load
 
 	
 all: $(DOCKERFILE)
-	$(DOCKER) buildx build . -f $(DOCKERFILE) -t $(IMAGE_NAME):$(TAG) -t $(IMAGE_NAME):latest \
-	--build-arg BUILD_DATE=$(DATE_FULL) --build-arg DOCKER_IMAGE=$(BASE_IMAGE) --platform $(COM_ARCH_LIST) \
-	--build-arg VERSION=$(VERSION) --push
+	$(DOCKER) buildx build . -f $(DOCKERFILE) -t $(IMAGE_NAME):$(IMAGE_SUBTAG)-$(TAG) \
+	-t $(IMAGE_NAME):$(IMAGE_SUBTAG) --build-arg BUILD_DATE=$(DATE_FULL) -t $(IMAGE_NAME):$(IMAGE_SUBTAG)-latest \
+	--build-arg DOCKER_IMAGE=$(BASE_IMAGE) --platform $(COM_ARCH_LIST) --build-arg VERSION=$(VERSION) --push
 
 push: all
 
 # https://github.com/linuxkit/linuxkit/tree/master/pkg/binfmt
 qemu:
 	export DOCKER_CLI_EXPERIMENTAL=enabled
-	$(DOCKER) run --rm --privileged linuxkit/binfmt:v0.8
-	$(DOCKER) buildx create --name mybuilder --driver docker-container --use
+	$(DOCKER) run --rm --privileged multiarch/qemu-user-static --reset -p yes
+	$(DOCKER) buildx create --name qemu_builder --driver docker-container --use
 	$(DOCKER) buildx inspect --bootstrap
 
 clean:
